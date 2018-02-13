@@ -1,0 +1,14 @@
+<Labels>
+  <Label name="eclientaccountbalancereport.menu_53001993">
+    <LabelDetail languageName="English" description="e-Client Account Balance Report" />
+    <LabelDetail languageName="Arabic" description="رصيد حساب" />
+  </Label>
+  <Label name="create_53002216">
+    <LabelDetail languageName="English" description="Generate" />
+    <LabelDetail languageName="Arabic" description="إنشاء" />
+  </Label>
+  <Label name="payment.report.title">
+    <LabelDetail languageName="English" description="Payments Report" />
+    <LabelDetail languageName="Arabic" description="تقرير الدفعات" />
+  </Label>
+</Labels>
