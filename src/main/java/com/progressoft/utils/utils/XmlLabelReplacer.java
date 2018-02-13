@@ -2,6 +2,7 @@ package com.progressoft.utils.utils;
 
 import com.progressoft.utils.jaxb.LabelType;
 import com.progressoft.utils.jaxb.LabelsType;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,6 +16,7 @@ import java.util.Collection;
 
 import static java.util.Arrays.stream;
 
+@Slf4j
 public class XmlLabelReplacer {
 
     public static void replace(String sourceRootDir, String destinationRootDir) {
@@ -43,8 +45,11 @@ public class XmlLabelReplacer {
                         .filter(destinationLabelType -> isLabelExistInDestination(sourceLabelType, destinationLabelType))
                         .findFirst()
                         .ifPresent(destLabelType -> {
-                            destLabelType.getLabelDetail().set(0, sourceLabelType.getLabelDetail().get(0));
-                            destLabelType.getLabelDetail().set(1, sourceLabelType.getLabelDetail().get(1));
+                            log.info("labelKeyName = [{}]", sourceLabelType.getName());
+                            if (sourceLabelType.getLabelDetail().size() > 1)
+                                destLabelType.getLabelDetail().set(0, sourceLabelType.getLabelDetail().get(0));
+                            if (sourceLabelType.getLabelDetail().size() > 1)
+                                destLabelType.getLabelDetail().set(1, sourceLabelType.getLabelDetail().get(1));
                         }));
         return destinationLabelsType;
     }
