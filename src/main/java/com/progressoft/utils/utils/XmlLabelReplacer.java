@@ -13,50 +13,58 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.Optional;
 
 import static java.util.Arrays.stream;
 
 @Slf4j
 public class XmlLabelReplacer {
 
-    public static void replace(String sourceRootDir, String destinationRootDir) {
-        findAllLabelFiles(sourceRootDir)
+    public static void replace(final String srcRootDir, final String destRootDir) {
+        findAllLabelFiles(srcRootDir)
                 .forEach(file -> {
-                    String xmlSubPath = file.getAbsolutePath().replace(sourceRootDir, "");
-                    String destinationXmlFilePath = destinationRootDir + xmlSubPath;
-                    if (!Files.exists(Paths.get(destinationXmlFilePath))) {
-                        copySourceIfNotExistInDestination(file, destinationXmlFilePath);
+                    String xmlSubPath = file.getAbsolutePath().replace(srcRootDir, "");
+                    String destXmlPath = destRootDir + xmlSubPath;
+                    if (!Files.exists(Paths.get(destXmlPath))) {
+                        copySourceIfNotExistInDestination(file, destXmlPath);
                         return;
                     }
-                    replaceLabelsFromSourceToDestination(file, destinationXmlFilePath);
-                    writeToDestination(destinationXmlFilePath, replaceLabelsFromSourceToDestination(file, destinationXmlFilePath));
+                    replaceLabelsFromSourceToDestination(file, destXmlPath);
+                    writeToDestination(destXmlPath, replaceLabelsFromSourceToDestination(file, destXmlPath));
                 });
     }
 
-    private static LabelsType replaceLabelsFromSourceToDestination(File file, String destinationXmlFilePath) {
+    private static LabelsType replaceLabelsFromSourceToDestination(File file, String destXmlPath) {
         LabelsType sourceLabelsType = new JaxbParseLabelXml()
                 .parse(file);
-        LabelsType destinationLabelsType = new JaxbParseLabelXml()
-                .parse(new File(destinationXmlFilePath));
+        LabelsType destLabelTypes = new JaxbParseLabelXml()
+                .parse(new File(destXmlPath));
 
-        sourceLabelsType.getLabel().forEach(sourceLabelType ->
-                destinationLabelsType.getLabel()
-                        .stream()
-                        .filter(destinationLabelType -> isLabelExistInDestination(sourceLabelType, destinationLabelType))
-                        .findFirst()
-                        .ifPresent(destLabelType -> {
-                            log.info("labelKeyName = [{}]", sourceLabelType.getName());
-                            if (sourceLabelType.getLabelDetail().size() > 1)
-                                destLabelType.getLabelDetail().set(0, sourceLabelType.getLabelDetail().get(0));
-                            if (sourceLabelType.getLabelDetail().size() > 1)
-                                destLabelType.getLabelDetail().set(1, sourceLabelType.getLabelDetail().get(1));
-                        }));
-        return destinationLabelsType;
+        sourceLabelsType.getLabel().forEach(sourceLabelType -> {
+            log.info("labelKeyName = [{}]", sourceLabelType.getName());
+            Optional<LabelType> matchedLabelType = destLabelTypes.getLabel()
+                    .stream()
+                    .filter(destinationLabelType -> isLabelExistInDestination(sourceLabelType, destinationLabelType))
+                    .findFirst();
+            if (matchedLabelType.isPresent()) {
+                LabelType destLabelType = matchedLabelType.get();
+                if (sourceLabelType.getLabelDetail().size() > 1)
+                    destLabelType.getLabelDetail().set(0, sourceLabelType.getLabelDetail().get(0));
+                if (sourceLabelType.getLabelDetail().size() > 1) {
+                    if (destLabelType.getLabelDetail().size() > 1) {
+                        destLabelType.getLabelDetail().set(1, sourceLabelType.getLabelDetail().get(1));
+                    } else
+                        destLabelType.getLabelDetail().add(sourceLabelType.getLabelDetail().get(1));
+                }
+            } else {
+                destLabelTypes.getLabel().add(sourceLabelType);
+            }
+        });
+        return destLabelTypes;
     }
 
     private static boolean isLabelExistInDestination(LabelType sourceLabelType, LabelType destinationLabelType) {
-        String labelName = resolveLabelName(destinationLabelType.getName());
-        return sourceLabelType.getName().startsWith(labelName) || sourceLabelType.getName().equals(labelName);
+        return resolveLabelName(sourceLabelType.getName()).equals(resolveLabelName(destinationLabelType.getName()));
     }
 
     private static String resolveLabelName(String name) {

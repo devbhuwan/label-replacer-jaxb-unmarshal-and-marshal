@@ -11,4 +11,12 @@
     <LabelDetail languageName="English" description="Payments Report" />
     <LabelDetail languageName="Arabic" description="تقرير الدفعات" />
   </Label>
+  <Label name="payment.report.title2">
+    <LabelDetail languageName="English" description="Payments Report" />
+    <LabelDetail languageName="Arabic" description="تقرير الدفعات" />
+  </Label>
+  <Label name="payment.report.title3">
+    <LabelDetail languageName="English" description="Payments Report" />
+    <LabelDetail languageName="Arabic" description="تقرير الدفعات" />
+  </Label>
 </Labels>
