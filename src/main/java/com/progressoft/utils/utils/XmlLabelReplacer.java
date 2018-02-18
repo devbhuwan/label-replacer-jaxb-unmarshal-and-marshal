@@ -13,7 +13,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collection;
-import java.util.Optional;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.Arrays.stream;
 
@@ -42,19 +43,18 @@ public class XmlLabelReplacer {
 
         sourceLabelsType.getLabel().forEach(sourceLabelType -> {
             log.info("labelKeyName = [{}]", sourceLabelType.getName());
-            Optional<LabelType> matchedLabelType = destLabelTypes.getLabel()
+            List<LabelType> matchedLabelType = destLabelTypes.getLabel()
                     .stream()
-                    .filter(destinationLabelType -> isLabelExistInDestination(sourceLabelType, destinationLabelType))
-                    .findFirst();
-            if (matchedLabelType.isPresent()) {
-                LabelType destLabelType = matchedLabelType.get();
-                if (sourceLabelType.getLabelDetail().size() > 1)
-                    destLabelType.getLabelDetail().set(0, sourceLabelType.getLabelDetail().get(0));
-                if (sourceLabelType.getLabelDetail().size() > 1) {
-                    if (destLabelType.getLabelDetail().size() > 1) {
-                        destLabelType.getLabelDetail().set(1, sourceLabelType.getLabelDetail().get(1));
-                    } else
-                        destLabelType.getLabelDetail().add(sourceLabelType.getLabelDetail().get(1));
+                    .filter(destinationLabelType -> isLabelExistInDestination(sourceLabelType, destinationLabelType)).collect(Collectors.toList());
+            if (matchedLabelType.size() > 0) {
+                for (LabelType destLabelType : matchedLabelType) {
+                    if (sourceLabelType.getLabelDetail().size() > 1) {
+                        destLabelType.getLabelDetail().set(0, sourceLabelType.getLabelDetail().get(0));
+                        if (destLabelType.getLabelDetail().size() > 1) {
+                            destLabelType.getLabelDetail().set(1, sourceLabelType.getLabelDetail().get(1));
+                        } else
+                            destLabelType.getLabelDetail().add(sourceLabelType.getLabelDetail().get(1));
+                    }
                 }
             } else {
                 destLabelTypes.getLabel().add(sourceLabelType);
